@@ -1,7 +1,8 @@
+"use strict";
+
+const fsP = require("fs/promises");
+
 /** Textual markov chain generator. */
-
-
-// const randomChoice = require("random-choice");
 
 class MarkovMachine {
 
@@ -29,23 +30,21 @@ class MarkovMachine {
    * */
 
   getChains() {
-    // TODO: implement this!
+    // TODO: implement this! else on same lines as curly braces
     let markovChain = {};
-    for (let i=0; i<this.words.length; i++) {
-      if (i === this.words.length -1) {
+    for (let i = 0; i < this.words.length; i++) {
+      if (i === this.words.length - 1) {
         if (markovChain[this.words[i]] === undefined) {
           markovChain[this.words[i]] = [null];
-        }
-        else {
+        } else {
           markovChain[this.words[i]].push(null);
         }
         return markovChain;
       }
       if (this.words[i] in markovChain) {
-        markovChain[this.words[i]].push(this.words[i+1]);
-      }
-      else {
-        markovChain[this.words[i]] = [this.words[i+1]];
+        markovChain[this.words[i]].push(this.words[i + 1]);
+      } else {
+        markovChain[this.words[i]] = [this.words[i + 1]];
       }
     }
     return markovChain;
@@ -62,52 +61,51 @@ class MarkovMachine {
     // - start at the first word in the input text
     // - find a random word from the following-words of that
     // - repeat until reaching the terminal null
-
-    let startingWord = this.words[0];
-    let story = [startingWord];
+    const startingWord = this.words[0];
+    let outputStory = [startingWord];
 
 
     while (true) {
-      let indexLastWord = story.length-1;
+      let indexLastWord = outputStory.length - 1;
       let indexNextWord = getRandomInt(
-        this.chains[[indexLastWord]].length)
-      let nextWord = this.chains[story[indexLastWord]][indexNextWord]
+        this.chains[outputStory[indexLastWord]].length)
+      let nextWord = this.chains[outputStory[indexLastWord]][indexNextWord]
       if (nextWord != null) {
-        story.push(nextWord);
-      }
-      else {
-        return story.join(" ");
+        outputStory.push(nextWord);
+      } else {
+        return outputStory.join(" ");
       }
     }
   }
 }
 
-
+/** Takes in a max number, returns a random number between 0-max */
 function getRandomInt(max) {
   return Math.floor(Math.random() * max);
 }
 
-let gtext;
-const fsP = require("fs/promises");
-
-async function readMyFile(file) {
-  console.log("running");
+/** Takes in a file name, updates global gtext with the contents of the
+ *  file.
+ */
+async function readMyFile(filePath) {
   try {
-    let contents = await fsP.readFile(file, "utf8");
-    console.log(contents);
-    gtext = contents;
-  }
-  catch (err) {
-    console.error(err.message)
+    let contents = await fsP.readFile(filePath, "utf8");
+    return contents;
+  } catch (err) {
+    console.error(err.message);
     process.exit(1);
   }
 }
 
-readMyFile("eggs.txt");
-console.log(gtext);
+/** Takes in a file name, generates a MarkovMachine with the contents of the 
+ *  file, generates markov text and logs in console.
+ */
+async function generateMarkov(filePath) {
+  const newText = await readMyFile(filePath);
 
+  const markovMachine = new MarkovMachine(newText);
+  markovMachine.getText();
+  console.log(markovMachine.getText());
+}
 
-const catInHatMachine = new MarkovMachine(gtext);
-catInHatMachine.getText();
-console.log(catInHatMachine.getText());
-
+module.exports= {MarkovMachine, generateMarkov};
